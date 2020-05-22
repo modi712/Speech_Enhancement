@@ -95,10 +95,16 @@ class BasicDataset(Dataset):
         for i in range(0,(T)*16,16):
           NoiseCafe1.append(np.log(np.abs(Zxx[:,i:i+16])+1e-8))
 
-        return [NoiseCafe, NoiseCafe1]
+        NoiseCafe = np.asarray(NoiseCafe)
+        NoiseCafe1 = np.asarray(NoiseCafe1)
 
-dataset = BasicDataset('hi', 'hi', 1)
-print(dataset.__getitem__(1))
+        return { "train" :NoiseCafe, "label" : NoiseCafe1}
+
+
+#dataset = BasicDataset('hi', 'hi', 1)
+#print(dataset.__getitem__(1))
+
+
 
    
 
