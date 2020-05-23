@@ -86,25 +86,54 @@ class BasicDataset(Dataset):
         for i in range(0,(T)*16,16):
           NoiseCafe.append(np.log(np.abs(Zxx[:,i:i+16])+1e-8))
 
+        
+
+        X_train = NoiseCafe[0:8]
+        Y_train = NoiseCafe[1:9]
+        
+        X_train = np.asarray(X_train)
+        Y_train = np.asarray(Y_train)
+        Z_train = np.concatenate((X_train,Y_train))
+        print(X_train.shape)
+        print(Z_train.shape)
+        for i in range(8,len(NoiseCafe)):
+          Y_train = NoiseCafe[i-7:i+1]
+          Y_train = np.asarray(Y_train)
+          X_train = np.concatenate((X_train,Y_train))
+
+        print(X_train.shape)
+          #temp = NoiseCafe[i-7]
+          #for j in range(1,8):
+              #temp = np.concatenate((temp,NoiseCafe[(i-7)+j]),axis=1)
+          #X_train = np.concatenate((X_train,temp))
+
+        #NoiseCafe = X_train    
+
         print(mask_file)
         mask = (idxm)
         sample_rate, samples = wavfile.read(mask)
         f, t, Zxx = signal.stft(samples, sample_rate,nperseg=256,noverlap=192,nfft=256)
         T = len(t)//16
+        
+        
 
         for i in range(0,(T)*16,16):
           NoiseCafe1.append(np.log(np.abs(Zxx[:,i:i+16])+1e-8))
 
-        NoiseCafe = np.asarray(NoiseCafe)
+        NoiseCafe = X_train
         NoiseCafe1 = np.asarray(NoiseCafe1)
+        NoiseCafe1 = NoiseCafe1.reshape(NoiseCafe1.shape[0],1,129, 16)
 
         return { "train" :NoiseCafe, "label" : NoiseCafe1}
 
 
-#dataset = BasicDataset('hi', 'hi', 1)
-#print(dataset.__getitem__(1))
+dataset = BasicDataset('hi', 'hi', 1)
+l = (dataset.__getitem__(1))
+x = l['train']
+y = l['label']
 
-
+print(x.shape)
+print(y.shape)
 
    
 
