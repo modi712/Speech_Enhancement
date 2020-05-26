@@ -80,6 +80,8 @@ class BasicDataset(Dataset):
         img = (img_file[0])
         #print(img)
         sample_rate, samples = wavfile.read(img)
+
+        frequencies, times, spectrogram1 = signal.spectrogram(samples, sample_rate)
         f, t, Zxx = signal.stft(samples, sample_rate,nperseg=256,noverlap=192,nfft=256)
         T = len(t)//16
 
@@ -112,6 +114,7 @@ class BasicDataset(Dataset):
         print(mask_file)
         mask = (idxm)
         sample_rate, samples = wavfile.read(mask)
+        frequencies, times, spectrogram2 = signal.spectrogram(samples, sample_rate)
         f, t, Zxx = signal.stft(samples, sample_rate,nperseg=256,noverlap=192,nfft=256)
         T = len(t)//16
         
@@ -124,7 +127,7 @@ class BasicDataset(Dataset):
         NoiseCafe1 = np.asarray(NoiseCafe1)
         NoiseCafe1 = NoiseCafe1.reshape(NoiseCafe1.shape[0],1,129, 16)
 
-        return { "train" :NoiseCafe, "label" : NoiseCafe1}
+        return { "image" :torch.from_numpy(spectrogram1), "mask" : torch.from_numpy(spectrogram2)}
 
 
 dataset = BasicDataset('hi', 'hi', 1)
