@@ -14,6 +14,8 @@ from scipy import signal
 from scipy.io import wavfile
 import numpy as np
 
+import stft
+
 #for roots,dirs,files in os.walk('/home/nihar/Desktop/Pytorch-UNet-master/Training/Damaged'):
 #                print(roots,len(dirs),len(files))
 
@@ -81,6 +83,8 @@ class BasicDataset(Dataset):
         #print(img)
         sample_rate, samples = wavfile.read(img)
 
+        specgram1 = stft.spectrogram(samples)
+
         frequencies, times, spectrogram1 = signal.spectrogram(samples, sample_rate)
         f, t, Zxx = signal.stft(samples, sample_rate,nperseg=256,noverlap=192,nfft=256)
         T = len(t)//16
@@ -114,6 +118,8 @@ class BasicDataset(Dataset):
         print(mask_file)
         mask = (idxm)
         sample_rate, samples = wavfile.read(mask)
+
+        specgram2 = stft.spectrogram(samples)
         frequencies, times, spectrogram2 = signal.spectrogram(samples, sample_rate)
         f, t, Zxx = signal.stft(samples, sample_rate,nperseg=256,noverlap=192,nfft=256)
         T = len(t)//16
@@ -130,13 +136,13 @@ class BasicDataset(Dataset):
         return { "image" :torch.from_numpy(spectrogram1), "mask" : torch.from_numpy(spectrogram2)}
 
 
-dataset = BasicDataset('hi', 'hi', 1)
-l = (dataset.__getitem__(1))
-x = l['train']
-y = l['label']
+#dataset = BasicDataset('hi', 'hi', 1)
+#l = (dataset.__getitem__(1))
+#x = l['image']
+#y = l['mask']
 
-print(x.shape)
-print(y.shape)
+#print(x.shape)
+#print(y.shape)
 
    
 

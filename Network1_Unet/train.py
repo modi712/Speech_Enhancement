@@ -13,12 +13,14 @@ from eval import eval_net
 from unet import UNet
 
 from torch.utils.tensorboard import SummaryWriter
-from utils.dataset import BasicDataset
+from dataset1 import BasicDataset
 from torch.utils.data import DataLoader, random_split
 from dice_loss import dice_coeff
 dir_img = '/content/drive/My Drive/ML /Training/Damaged'
 dir_mask = 'data/masks/'
 dir_checkpoint = 'checkpoints/'
+
+import cv2
 
 
 def train_net(net,
@@ -90,14 +92,36 @@ def train_net(net,
                 true_masks = true_masks.to(device=device, dtype=mask_type)
 
                 masks_pred = net(imgs)
-                print(np.mean(masks_pred.cpu().data.numpy()))
-                pred = (masks_pred > 0.5).float()
-                dice_epoch_loss += dice_coeff(pred, true_masks.squeeze(dim=1)).item()
-                print(dice_coeff(pred, true_masks.squeeze(dim=1)).item())
+                if global_step % (1000) == 0:
+                  x = (masks_pred.cpu().data.numpy())
+                  x = x[0,:,:]
+                  x = x[0,:,:]
+                  x = (x > 0.5).astype(float)
+                   
+                  p = (true_masks.cpu().data.numpy())
+                  #print(p.shape)
+                  p = p[0,:,:]
+                  #print(p.shape)
+                  p = p[0,:,:]
+                  p = (p > 0.5).astype(float)
+                  #print(p)
+                  #print(p.shape)
+                  y = str(global_step)
+                  z = '/content/drive/My Drive/TCDTIMIT/img/ap'+y + '.png'
+                  z1 = '/content/drive/My Drive/TCDTIMIT/img/at'+y + '.png'
+                  #print(z)
+                  cv2.imwrite(z, x*255)
+                  cv2.imwrite(z1, p*255)
+
+                #print(np.mean(masks_pred.cpu().data.numpy()))
+                #pred = (masks_pred > 0.5).float()
+                #dice_epoch_loss += dice_coeff(pred, true_masks.squeeze(dim=1)).item()
+                #print(dice_coeff(pred, true_masks.squeeze(dim=1)).item())
                 temp1 = net.inc.double_conv
                 # print(temp1[0].weight)
                 # m = nn.Sigmoid()
                 loss = criterion((masks_pred), true_masks)
+                print(loss,'- loss')
                 epoch_loss += loss.item()
                 writer.add_scalar('Loss/train', loss.item(), global_step)
 
@@ -109,7 +133,7 @@ def train_net(net,
 
                 pbar.update(imgs.shape[0])
                 global_step += 1
-                if global_step % (len(dataset) // (10 * batch_size)) == 0:
+                if global_step % (100000) == 0:
                     val_score = 0
                     for batch in val_loader:
                       val_score = val_score + eval_net(net, batch, device, 0)/n_val
@@ -183,7 +207,7 @@ if __name__ == '__main__':
     #   - For 1 class and background, use n_classes=1
     #   - For 2 classes, use n_classes=1
     #   - For N > 2 classes, use n_classes=N
-    net = UNet(n_channels=3, n_classes=1)
+    net = UNet(n_channels=1, n_classes=1)
     logging.info(f'Network:\n'
                  f'\t{net.n_channels} input channels\n'
                  f'\t{net.n_classes} output channels (classes)\n'
