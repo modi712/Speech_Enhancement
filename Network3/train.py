@@ -62,7 +62,7 @@ def train_net(net,
     # optimizer = optim.RMSprop(net.parameters(), lr=lr, weight_decay=weight_decay,momentum=momentum)
     # optimizer = optim.Adam(net.parameters(), lr=lr, weight_decay=weight_decay)
     optimizer = optim.Adagrad(net.parameters(), lr=lr, weight_decay=weight_decay,lr_decay = lr_decay)
-    if net.n_classes > 1:
+    if 1 > 2:
         criterion = nn.CrossEntropyLoss()
     else:
         criterion = nn.MSELoss()
@@ -82,57 +82,93 @@ def train_net(net,
                 print(batch_temp)
                 batch_temp = batch_temp+1;
                 true_masks = batch['mask']
-                assert imgs.shape[1] == net.n_channels, \
-                    f'Network has been defined with {net.n_channels} input channels, ' \
-                    f'but loaded images have {imgs.shape[1]} channels. Please check that ' \
-                    'the images are loaded correctly.'
+                image = imgs
+                trma = true_masks
 
-                imgs = imgs.to(device=device, dtype=torch.float32)
-                mask_type = torch.float32 if net.n_classes == 1 else torch.long
-                true_masks = true_masks.to(device=device, dtype=mask_type)
+                l = imgs.shape[2]
+                print(l, 'hi')
 
-                masks_pred = net(imgs)
-                if global_step % (1000) == 0:
-                  x = (masks_pred.cpu().data.numpy())
-                  x = x[0,:,:]
-                  x = x[0,:,:]
-                  x = (x > 0.5).astype(float)
-                   
-                  p = (true_masks.cpu().data.numpy())
-                  #print(p.shape)
-                  p = p[0,:,:]
-                  #print(p.shape)
-                  p = p[0,:,:]
-                  p = (p > 0.5).astype(float)
-                  #print(p)
-                  #print(p.shape)
-                  y = str(global_step)
-                  z = '/content/drive/My Drive/TCDTIMIT/img/ap'+y + '.png'
-                  z1 = '/content/drive/My Drive/TCDTIMIT/img/at'+y + '.png'
-                  #print(z)
-                  cv2.imwrite(z, x*255)
-                  cv2.imwrite(z1, p*255)
+                maskp = true_masks[0,:,0]
+                maskp = maskp.data.numpy()
+                maskp = maskp.reshape(129,1)
+                print(maskp.shape, 'hello')
 
-                #print(np.mean(masks_pred.cpu().data.numpy()))
-                #pred = (masks_pred > 0.5).float()
-                #dice_epoch_loss += dice_coeff(pred, true_masks.squeeze(dim=1)).item()
-                #print(dice_coeff(pred, true_masks.squeeze(dim=1)).item())
-                temp1 = net.inc.double_conv
-                # print(temp1[0].weight)
-                # m = nn.Sigmoid()
-                loss = criterion((masks_pred), true_masks)
-                print(loss,'- loss')
-                epoch_loss += loss.item()
-                writer.add_scalar('Loss/train', loss.item(), global_step)
+                for p in range(l):
+                  imgs = image[:,:,p]
+                  true_masks = trma[:,:,p]
 
-                pbar.set_postfix(**{'loss (batch)': loss.item()})
+                  print(imgs.shape)
+                  print(true_masks.shape)
 
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+                  #assert imgs.shape[1] == net.n_channels, \
+                  #    f'Network has been defined with {net.n_channels} input channels, ' \
+                  #    f'but loaded images have {imgs.shape[1]} channels. Please check that ' \
+                  #    'the images are loaded correctly.'
 
-                pbar.update(imgs.shape[0])
+                  imgs = imgs.to(device=device, dtype=torch.float32)
+                  mask_type = torch.float32 #if net.n_classes == 1 else torch.long
+                  true_masks = true_masks.to(device=device, dtype=mask_type)
+
+                  masks_pred = net(imgs)
+                  if p > 0:
+                    x = masks_pred.cpu().data.numpy()
+                    x = x[0,:]
+                    x = x.reshape(129,1)
+                    maskp = np.concatenate((maskp, x),axis = 1)
+                  
+                  
+
+                  #print(np.mean(masks_pred.cpu().data.numpy()))
+                  #pred = (masks_pred > 0.5).float()
+                  #dice_epoch_loss += dice_coeff(pred, true_masks.squeeze(dim=1)).item()
+                  #print(dice_coeff(pred, true_masks.squeeze(dim=1)).item())
+                  #temp1 = net.inc.double_conv
+                  # print(temp1[0].weight)
+                  # m = nn.Sigmoid()
+                  loss = criterion((masks_pred), true_masks)
+                  print(loss,'- loss')
+                  epoch_loss += loss.item()
+                  writer.add_scalar('Loss/train', loss.item(), global_step)
+
+                  pbar.set_postfix(**{'loss (batch)': loss.item()})
+
+                  optimizer.zero_grad()
+                  loss.backward()
+                  optimizer.step()
+
+                  pbar.update(imgs.shape[0])
+
+                print(maskp.shape, 'hello from the other side')
                 global_step += 1
+                if global_step > 2:
+                    #x = (masks_pred.cpu().data.numpy())
+                    #x = x[0,:,:]
+                    #x = x[0,:,:]
+                    #x = (x > 0.5).astype(float)
+                   
+                    p = (trma.cpu().data.numpy())
+                    print(p.shape, 'h1')
+                    p = p[0,:,:]
+                    print(p.shape, 'h2')
+                    #p = p[0,:,:]
+                    #p = (p > 0.5).astype(float)
+                    #print(p)
+                    #print(p.shape)
+                    x = maskp
+                    print(x, 'phappy')
+                    print(p, 'thappy')
+                    q = x-p
+                    q = np.abs(q)
+                    r = np.mean(q)
+                    print(r, 'hey r')
+                    print(np.amax(x), 'hey x')
+                    print(np.mean(p), 'hey p')
+                    y = str(global_step)
+                    z = '/content/drive/My Drive/TCDTIMIT/img/ap'+y + '.png'
+                    z1 = '/content/drive/My Drive/TCDTIMIT/img/at'+y + '.png'
+                    #print(z)
+                    cv2.imwrite(z, x)
+                    cv2.imwrite(z1, p)
                 if global_step % (100000) == 0:
                     val_score = 0
                     for batch in val_loader:
@@ -207,11 +243,12 @@ if __name__ == '__main__':
     #   - For 1 class and background, use n_classes=1
     #   - For 2 classes, use n_classes=1
     #   - For N > 2 classes, use n_classes=N
-    net = UNet(n_channels=1, n_classes=1)
-    logging.info(f'Network:\n'
-                 f'\t{net.n_channels} input channels\n'
-                 f'\t{net.n_classes} output channels (classes)\n'
-                 f'\t{"Bilinear" if net.bilinear else "Dilated conv"} upscaling')
+    #net = UNet(n_channels=1, n_classes=1)
+    net = UNet()
+    #logging.info(f'Network:\n'
+    #             f'\t{net.n_channels} input channels\n'
+    #             f'\t{net.n_classes} output channels (classes)\n'
+    #             f'\t{"Bilinear" if net.bilinear else "Dilated conv"} upscaling')
 
     if args.load:
         net.load_state_dict(

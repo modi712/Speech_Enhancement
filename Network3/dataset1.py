@@ -41,7 +41,7 @@ class BasicDataset(Dataset):
           print("present dir: ",dirpath)
           if dirpath.endswith("straightcam"):
             print(dirpath[67])
-            if dirpath[67] == "0":
+            if 2>1:
 
               for filename in filenames:
                 if filename.endswith(".wav"):

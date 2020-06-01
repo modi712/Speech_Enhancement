@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from .unet_parts import *
 
 
-class UNet(nn.Module):
+class UNet1(nn.Module):
     def __init__(self, n_channels, n_classes, bilinear=True):
         super(UNet, self).__init__()
         self.n_channels = n_channels
@@ -39,3 +39,25 @@ class UNet(nn.Module):
         # logits = F.sigmoid(logits)
         # logits = logits.long()
         return logits
+
+class UNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        
+        # Inputs to hidden layer linear transformation
+        self.hidden = nn.Linear(784, 256)
+        # Output layer, 10 units - one for each digit
+        self.output = nn.Linear(256, 10)
+        
+        # Define sigmoid activation and softmax output 
+        self.sigmoid = nn.Sigmoid()
+        self.softmax = nn.Softmax(dim=1)
+        
+    def forward(self, x):
+        # Pass the input tensor through each of our operations
+        x = self.hidden(x)
+        x = self.sigmoid(x)
+        x = self.output(x)
+        x = self.softmax(x)
+        
+        return x
