@@ -22,6 +22,8 @@ dir_checkpoint = 'checkpoints/'
 
 import cv2
 
+import stft
+
 
 def train_net(net,
               device,
@@ -79,6 +81,7 @@ def train_net(net,
         with tqdm(total=n_train, desc=f'Epoch {epoch + 1}/{epochs}', unit='img') as pbar:
             for batch in train_loader:
                 imgs = batch['image']
+                fs = batch['fs']
                 print(batch_temp)
                 batch_temp = batch_temp+1;
                 true_masks = batch['mask']
@@ -140,7 +143,7 @@ def train_net(net,
 
                 print(maskp.shape, 'hello from the other side')
                 global_step += 1
-                if global_step > 2:
+                if global_step > 0:
                     #x = (masks_pred.cpu().data.numpy())
                     #x = x[0,:,:]
                     #x = x[0,:,:]
@@ -166,9 +169,17 @@ def train_net(net,
                     y = str(global_step)
                     z = '/content/drive/My Drive/TCDTIMIT/img/ap'+y + '.png'
                     z1 = '/content/drive/My Drive/TCDTIMIT/img/at'+y + '.png'
+                    z2 = '/content/drive/My Drive/TCDTIMIT/audio/apwav'+y + '.png'
+                    z3 = '/content/drive/My Drive/TCDTIMIT/audio/atwav'+y + '.png'
                     #print(z)
                     cv2.imwrite(z, x)
                     cv2.imwrite(z1, p)
+
+                    output = stft.ispectrogram(x)
+                    wav.write(z2, fs, output)
+
+                    output = stft.ispectrogram(p)
+                    wav.write(z3, fs, output)
                 if global_step % (100000) == 0:
                     val_score = 0
                     for batch in val_loader:

@@ -133,7 +133,7 @@ class BasicDataset(Dataset):
         NoiseCafe1 = np.asarray(NoiseCafe1)
         NoiseCafe1 = NoiseCafe1.reshape(NoiseCafe1.shape[0],1,129, 16)
 
-        return { "image" :torch.from_numpy(spectrogram1), "mask" : torch.from_numpy(spectrogram2)}
+        return { "image" :torch.from_numpy(spectrogram1), "mask" : torch.from_numpy(spectrogram2), "fs" : sample_rate}
 
 
 #dataset = BasicDataset('hi', 'hi', 1)
