@@ -83,65 +83,59 @@ class BasicDataset(Dataset):
         #print(img)
         sample_rate, samples = wavfile.read(img)
 
-        specgram1 = stft.spectrogram(samples)
-
-        frequencies, times, spectrogram1 = signal.spectrogram(samples, sample_rate)
-        f, t, Zxx = signal.stft(samples, sample_rate,nperseg=256,noverlap=192,nfft=256)
-        T = len(t)//16
-
-        for i in range(0,(T)*16,16):
-          NoiseCafe.append(np.log(np.abs(Zxx[:,i:i+16])+1e-8))
+        
 
         
 
-        X_train = NoiseCafe[0:8]
-        Y_train = NoiseCafe[1:9]
+        frequencies, times, spectrogram1 = signal.stft(samples, sample_rate, nperseg=256,noverlap=192,nfft=256)
+
+        spectrogram1a = np.abs(spectrogram1) 
+        #spectrogram1b = spectrogram1/spectrogram1a
+        spectrogram1b = np.angle(spectrogram1, deg = True)
+
+
         
-        X_train = np.asarray(X_train)
-        Y_train = np.asarray(Y_train)
-        Z_train = np.concatenate((X_train,Y_train))
-        print(X_train.shape)
-        print(Z_train.shape)
-        for i in range(8,len(NoiseCafe)):
-          Y_train = NoiseCafe[i-7:i+1]
-          Y_train = np.asarray(Y_train)
-          X_train = np.concatenate((X_train,Y_train))
-
-        print(X_train.shape)
-          #temp = NoiseCafe[i-7]
-          #for j in range(1,8):
-              #temp = np.concatenate((temp,NoiseCafe[(i-7)+j]),axis=1)
-          #X_train = np.concatenate((X_train,temp))
-
-        #NoiseCafe = X_train    
-
-        print(mask_file)
         mask = (idxm)
         sample_rate, samples = wavfile.read(mask)
 
-        specgram2 = stft.spectrogram(samples)
-        frequencies, times, spectrogram2 = signal.spectrogram(samples, sample_rate)
-        f, t, Zxx = signal.stft(samples, sample_rate,nperseg=256,noverlap=192,nfft=256)
-        T = len(t)//16
-        
         
 
-        for i in range(0,(T)*16,16):
-          NoiseCafe1.append(np.log(np.abs(Zxx[:,i:i+16])+1e-8))
+        frequencies, times, spectrogram2 = signal.stft(samples, sample_rate, nperseg=256,noverlap=192,nfft=256)
 
-        NoiseCafe = X_train
-        NoiseCafe1 = np.asarray(NoiseCafe1)
-        NoiseCafe1 = NoiseCafe1.reshape(NoiseCafe1.shape[0],1,129, 16)
+        spectrogram2a = np.abs(spectrogram2) 
+        #spectrogram2b = spectrogram2/spectrogram2a
 
-        return { "image" :torch.from_numpy(spectrogram1), "mask" : torch.from_numpy(spectrogram2), "fs" : sample_rate}
+        spectrogram2b = np.angle(spectrogram2)
+
+        #frequencies, times, spectrogram2a = signal.spectrogram(samples, sample_rate, mode = 'magnitude')
+
+        #frequencies, times, spectrogram2b = signal.spectrogram(samples, sample_rate, mode = 'phase')
+
+        abc = spectrogram2a * (np.exp(1j*spectrogram2b))
+        #abc = spectrogram2a*spectrogram2b
+
+        print(np.mean(abc - spectrogram2))
+
+        z3 = '/content/drive/My Drive/TCDTIMIT/audio/atwav011' + '.wav'
+
+        _, output = signal.istft(spectrogram1, sample_rate, nperseg=256,noverlap=192,nfft=256)
+        wavfile.write(z3, sample_rate, output)
+        
 
 
-#dataset = BasicDataset('hi', 'hi', 1)
-#l = (dataset.__getitem__(1))
-#x = l['image']
+     
+
+
+        return { "image" :torch.from_numpy(spectrogram1a), "mask" : torch.from_numpy(spectrogram2a), "fs" : sample_rate, 'a1' : spectrogram1b, 'a2' : spectrogram2b}
+
+
+dataset = BasicDataset('hi', 'hi', 1)
+l = (dataset.__getitem__(4))
+x = l['a2']
+#print(x)
 #y = l['mask']
 
-#print(x.shape)
+print(x.shape)
 #print(y.shape)
 
    

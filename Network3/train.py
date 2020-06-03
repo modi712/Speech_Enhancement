@@ -22,7 +22,10 @@ dir_checkpoint = 'checkpoints/'
 
 import cv2
 
-import stft
+#import stft
+
+from scipy import signal
+from scipy.io import wavfile
 
 
 def train_net(net,
@@ -82,6 +85,8 @@ def train_net(net,
             for batch in train_loader:
                 imgs = batch['image']
                 fs = batch['fs']
+                a2 = batch['a2']
+                a1 = batch['a1']
                 print(batch_temp)
                 batch_temp = batch_temp+1;
                 true_masks = batch['mask']
@@ -150,8 +155,12 @@ def train_net(net,
                     #x = (x > 0.5).astype(float)
                    
                     p = (trma.cpu().data.numpy())
+                    a2 = (a2.cpu().data.numpy())
+                    a1 = (a1.cpu().data.numpy())
                     print(p.shape, 'h1')
                     p = p[0,:,:]
+                    a2 = a2[0,:,:]
+                    a1 = a1[0,:,:]
                     print(p.shape, 'h2')
                     #p = p[0,:,:]
                     #p = (p > 0.5).astype(float)
@@ -169,17 +178,20 @@ def train_net(net,
                     y = str(global_step)
                     z = '/content/drive/My Drive/TCDTIMIT/img/ap'+y + '.png'
                     z1 = '/content/drive/My Drive/TCDTIMIT/img/at'+y + '.png'
-                    z2 = '/content/drive/My Drive/TCDTIMIT/audio/apwav'+y + '.png'
-                    z3 = '/content/drive/My Drive/TCDTIMIT/audio/atwav'+y + '.png'
+                    z2 = '/content/drive/My Drive/TCDTIMIT/audio/apwav'+y + '.wav'
+                    z3 = '/content/drive/My Drive/TCDTIMIT/audio/atwav'+y + '.wav'
                     #print(z)
                     cv2.imwrite(z, x)
                     cv2.imwrite(z1, p)
 
-                    output = stft.ispectrogram(x)
-                    wav.write(z2, fs, output)
+                    #output = stft.ispectrogram(x)
+                    #wav.write(z2, fs, output)
 
-                    output = stft.ispectrogram(p)
-                    wav.write(z3, fs, output)
+                    _, output = signal.istft(p * (np.exp(1j*a2)), fs)
+                    wavfile.write(z3, fs, output)
+
+                    _, output = signal.istft(x * (np.exp(1j*a1)), fs)
+                    wavfile.write(z2, fs, output)
                 if global_step % (100000) == 0:
                     val_score = 0
                     for batch in val_loader:
