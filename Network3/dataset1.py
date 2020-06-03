@@ -14,7 +14,9 @@ from scipy import signal
 from scipy.io import wavfile
 import numpy as np
 
-import stft
+#import stft
+
+import librosa
 
 #for roots,dirs,files in os.walk('/home/nihar/Desktop/Pytorch-UNet-master/Training/Damaged'):
 #                print(roots,len(dirs),len(files))
@@ -98,9 +100,13 @@ class BasicDataset(Dataset):
         mask = (idxm)
         sample_rate, samples = wavfile.read(mask)
 
+        samples1, sample_rate1 = librosa.load(mask)
+
         
 
         frequencies, times, spectrogram2 = signal.stft(samples, sample_rate, nperseg=256,noverlap=192,nfft=256)
+
+        D = librosa.stft(samples1)
 
         spectrogram2a = np.abs(spectrogram2) 
         #spectrogram2b = spectrogram2/spectrogram2a
@@ -116,10 +122,17 @@ class BasicDataset(Dataset):
 
         print(np.mean(abc - spectrogram2))
 
-        z3 = '/content/drive/My Drive/TCDTIMIT/audio/atwav011' + '.wav'
+        z3 = '/content/drive/My Drive/TCDTIMIT/audio/stft1' + '.wav'
+        z4 = '/content/drive/My Drive/TCDTIMIT/audio/clean1' + '.wav'
 
-        _, output = signal.istft(spectrogram1, sample_rate, nperseg=256,noverlap=192,nfft=256)
-        wavfile.write(z3, sample_rate, output)
+        #_, output = signal.istft(spectrogram2, sample_rate, nperseg=256,noverlap=192,nfft=256)
+        output = librosa.istft(D)
+        #wavfile.write(z3, sample_rate, output)
+
+        #wavfile.write(z4, sample_rate, samples)
+
+        librosa.output.write_wav(z3, output, sample_rate)
+        librosa.output.write_wav(z4, samples1, sample_rate1)
         
 
 
