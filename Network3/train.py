@@ -29,6 +29,12 @@ import librosa
 from scipy import signal
 from scipy.io import wavfile
 
+from pesq import pesq
+
+
+
+
+
 
 def train_net(net,
               device,
@@ -38,10 +44,10 @@ def train_net(net,
               val_percent=0.1,
               save_cp=True,
               img_scale=0.5):
-    lr = 0.011
-    momentum = 0.99
-    weight_decay = 1e-6
-    lr_decay = 0.01
+    lr = 0.01
+    momentum = 0.70
+    weight_decay = 1e-4
+    lr_decay = 0.001
     dataset = BasicDataset(dir_img, dir_mask, img_scale)
     print(len(dataset))
     # for i in range(len(dataset.ids)):
@@ -184,17 +190,25 @@ def train_net(net,
                     z2 = '/content/drive/My Drive/TCDTIMIT/audio/apwavx'+y + '.wav'
                     z3 = '/content/drive/My Drive/TCDTIMIT/audio/atwavx'+y + '.wav'
                     #print(z)
-                    cv2.imwrite(z, x*255)
-                    cv2.imwrite(z1, p*255)
+                    #cv2.imwrite(z, x*255)
+                    #cv2.imwrite(z1, p*255)
 
                     #output = stft.ispectrogram(x)
                     #wav.write(z2, fs, output)
 
-                    output = librosa.istft(p * (np.exp(1j*a2)))
+                    output = librosa.istft((np.sqrt(np.exp(p))) * (np.exp(1j*a2)))
                     librosa.output.write_wav(z3, output, fs)
 
-                    output = librosa.istft(x * (np.exp(1j*a1)))
+                    output = librosa.istft(np.sqrt((np.exp(x))) * (np.exp(1j*a1)))
                     librosa.output.write_wav(z2, output, fs)
+
+                    ref, rate = librosa.load(z3, sr=16000)
+                    deg, rate = librosa.load(z2, sr=16000)
+
+                    print('PESQ')
+                    print(pesq(rate, ref, deg, 'wb'))
+
+
                 if global_step % (100000) == 0:
                     val_score = 0
                     for batch in val_loader:

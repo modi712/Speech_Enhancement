@@ -87,8 +87,37 @@ class BasicDataset(Dataset):
 
         samples, sample_rate = librosa.load(img)
         D = librosa.stft(samples)
-        spectrogram1a = np.abs(D)
+        spectrogram1a = np.abs(D) 
+        spectrogram1a = np.square(spectrogram1a)+ 1e-15
+        spectrogram1a = np.log(spectrogram1a)
         spectrogram1b = np.angle(D)
+                         
+        
+        xk = np.zeros(1025)
+
+        #x = spectrogram1a[:,1:]
+        #y = spectrogram1a[:,0:-1]
+        #x = np.column_stack((x,xk))
+
+        #y = spectrogram1a[:,2:]
+        #yk = np.zeros((1025,2))
+        #y = np.hstack((y,yk))
+
+        #spectrogram1a = np.vstack((spectrogram1a,x))
+        #spectrogram1a = np.vstack((spectrogram1a,y))
+
+        temp = spectrogram1a
+
+        for i in range(1,4):
+          y = temp[:,i:]
+          yk = np.zeros((1025,i))
+          y = np.hstack((y,yk))
+
+          spectrogram1a = np.vstack((spectrogram1a,y))
+
+
+        print(spectrogram1a.shape)
+        #spectrogram1b = spectrogram1b[:,0:-1]
 
         #frequencies, times, spectrogram1 = signal.stft(samples, sample_rate, nperseg=256,noverlap=192,nfft=256)
 
@@ -109,10 +138,16 @@ class BasicDataset(Dataset):
 
         D1 = librosa.stft(samples1)
 
+        
+        
         spectrogram2a = np.abs(D1) 
+        spectrogram2a = np.square(spectrogram2a) + 1e-15 
+        spectrogram2a = np.log(spectrogram2a)
         #spectrogram2b = spectrogram2/spectrogram2a
 
         spectrogram2b = np.angle(D1)
+
+        #k = np.sqrt(np.log())
 
         #frequencies, times, spectrogram2a = signal.spectrogram(samples, sample_rate, mode = 'magnitude')
 
@@ -143,8 +178,8 @@ class BasicDataset(Dataset):
         return { "image" :torch.from_numpy(spectrogram1a), "mask" : torch.from_numpy(spectrogram2a), "fs" : sample_rate, 'a1' : spectrogram1b, 'a2' : spectrogram2b}
 
 
-#dataset = BasicDataset('hi', 'hi', 1)
-#l = (dataset.__getitem__(4))
+dataset = BasicDataset('hi', 'hi', 1)
+l = (dataset.__getitem__(4))
 #x = l['a2']
 #print(x)
 #y = l['mask']
