@@ -24,6 +24,8 @@ import cv2
 
 #import stft
 
+import librosa
+
 from scipy import signal
 from scipy.io import wavfile
 
@@ -94,19 +96,19 @@ def train_net(net,
                 trma = true_masks
 
                 l = imgs.shape[2]
-                print(l, 'hi')
+                #print(l, 'hi')
 
                 maskp = true_masks[0,:,0]
                 maskp = maskp.data.numpy()
-                maskp = maskp.reshape(129,1)
+                maskp = maskp.reshape(1025,1)
                 print(maskp.shape, 'hello')
 
                 for p in range(l):
                   imgs = image[:,:,p]
                   true_masks = trma[:,:,p]
 
-                  print(imgs.shape)
-                  print(true_masks.shape)
+                  #print(imgs.shape)
+                  #print(true_masks.shape)
 
                   #assert imgs.shape[1] == net.n_channels, \
                   #    f'Network has been defined with {net.n_channels} input channels, ' \
@@ -121,7 +123,7 @@ def train_net(net,
                   if p > 0:
                     x = masks_pred.cpu().data.numpy()
                     x = x[0,:]
-                    x = x.reshape(129,1)
+                    x = x.reshape(1025,1)
                     maskp = np.concatenate((maskp, x),axis = 1)
                   
                   
@@ -134,7 +136,7 @@ def train_net(net,
                   # print(temp1[0].weight)
                   # m = nn.Sigmoid()
                   loss = criterion((masks_pred), true_masks)
-                  print(loss,'- loss')
+                  #print(loss,'- loss')
                   epoch_loss += loss.item()
                   writer.add_scalar('Loss/train', loss.item(), global_step)
 
@@ -146,9 +148,9 @@ def train_net(net,
 
                   pbar.update(imgs.shape[0])
 
-                print(maskp.shape, 'hello from the other side')
+                #print(maskp.shape, 'hello from the other side')
                 global_step += 1
-                if global_step > 0:
+                if global_step % 50 == 0:
                     #x = (masks_pred.cpu().data.numpy())
                     #x = x[0,:,:]
                     #x = x[0,:,:]
@@ -157,41 +159,42 @@ def train_net(net,
                     p = (trma.cpu().data.numpy())
                     a2 = (a2.cpu().data.numpy())
                     a1 = (a1.cpu().data.numpy())
-                    print(p.shape, 'h1')
+                    #print(p.shape, 'h1')
                     p = p[0,:,:]
                     a2 = a2[0,:,:]
                     a1 = a1[0,:,:]
-                    print(p.shape, 'h2')
+                    #print(p.shape, 'h2')
                     #p = p[0,:,:]
                     #p = (p > 0.5).astype(float)
                     #print(p)
                     #print(p.shape)
                     x = maskp
-                    print(x, 'phappy')
-                    print(p, 'thappy')
+                    #print(x, 'phappy')
+                    #print(p, 'thappy')
                     q = x-p
                     q = np.abs(q)
+                    print(q)
                     r = np.mean(q)
                     print(r, 'hey r')
-                    print(np.amax(x), 'hey x')
+                    print(np.mean(x), 'hey x')
                     print(np.mean(p), 'hey p')
                     y = str(global_step)
-                    z = '/content/drive/My Drive/TCDTIMIT/img/ap'+y + '.png'
-                    z1 = '/content/drive/My Drive/TCDTIMIT/img/at'+y + '.png'
-                    z2 = '/content/drive/My Drive/TCDTIMIT/audio/apwav'+y + '.wav'
-                    z3 = '/content/drive/My Drive/TCDTIMIT/audio/atwav'+y + '.wav'
+                    z = '/content/drive/My Drive/TCDTIMIT/img/apx'+y + '.png'
+                    z1 = '/content/drive/My Drive/TCDTIMIT/img/atx'+y + '.png'
+                    z2 = '/content/drive/My Drive/TCDTIMIT/audio/apwavx'+y + '.wav'
+                    z3 = '/content/drive/My Drive/TCDTIMIT/audio/atwavx'+y + '.wav'
                     #print(z)
-                    cv2.imwrite(z, x)
-                    cv2.imwrite(z1, p)
+                    cv2.imwrite(z, x*255)
+                    cv2.imwrite(z1, p*255)
 
                     #output = stft.ispectrogram(x)
                     #wav.write(z2, fs, output)
 
-                    _, output = signal.istft(p * (np.exp(1j*a2)), fs)
-                    wavfile.write(z3, fs, output)
+                    output = librosa.istft(p * (np.exp(1j*a2)))
+                    librosa.output.write_wav(z3, output, fs)
 
-                    _, output = signal.istft(x * (np.exp(1j*a1)), fs)
-                    wavfile.write(z2, fs, output)
+                    output = librosa.istft(x * (np.exp(1j*a1)))
+                    librosa.output.write_wav(z2, output, fs)
                 if global_step % (100000) == 0:
                     val_score = 0
                     for batch in val_loader:

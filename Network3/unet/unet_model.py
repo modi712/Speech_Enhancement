@@ -45,9 +45,9 @@ class UNet(nn.Module):
         super().__init__()
         
         # Inputs to hidden layer linear transformation
-        self.hidden = nn.Linear(129, 100)
+        self.hidden = nn.Linear(1025, 100)
         # Output layer, 10 units - one for each digit
-        self.output = nn.Linear(100, 129)
+        self.output = nn.Linear(100, 1025)
         
         # Define sigmoid activation and softmax output 
         self.sigmoid = nn.ReLU()

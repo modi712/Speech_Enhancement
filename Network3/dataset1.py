@@ -83,56 +83,57 @@ class BasicDataset(Dataset):
         
         img = (img_file[0])
         #print(img)
-        sample_rate, samples = wavfile.read(img)
+        #sample_rate, samples = wavfile.read(img)
 
-        
+        samples, sample_rate = librosa.load(img)
+        D = librosa.stft(samples)
+        spectrogram1a = np.abs(D)
+        spectrogram1b = np.angle(D)
 
-        
+        #frequencies, times, spectrogram1 = signal.stft(samples, sample_rate, nperseg=256,noverlap=192,nfft=256)
 
-        frequencies, times, spectrogram1 = signal.stft(samples, sample_rate, nperseg=256,noverlap=192,nfft=256)
-
-        spectrogram1a = np.abs(spectrogram1) 
+        #spectrogram1a = np.abs(spectrogram1) 
         #spectrogram1b = spectrogram1/spectrogram1a
-        spectrogram1b = np.angle(spectrogram1, deg = True)
+        #spectrogram1b = np.angle(spectrogram1, deg = True)
 
 
         
         mask = (idxm)
-        sample_rate, samples = wavfile.read(mask)
+        #sample_rate, samples = wavfile.read(mask)
 
         samples1, sample_rate1 = librosa.load(mask)
 
         
 
-        frequencies, times, spectrogram2 = signal.stft(samples, sample_rate, nperseg=256,noverlap=192,nfft=256)
+        #frequencies, times, spectrogram2 = signal.stft(samples, sample_rate, nperseg=256,noverlap=192,nfft=256)
 
-        D = librosa.stft(samples1)
+        D1 = librosa.stft(samples1)
 
-        spectrogram2a = np.abs(spectrogram2) 
+        spectrogram2a = np.abs(D1) 
         #spectrogram2b = spectrogram2/spectrogram2a
 
-        spectrogram2b = np.angle(spectrogram2)
+        spectrogram2b = np.angle(D1)
 
         #frequencies, times, spectrogram2a = signal.spectrogram(samples, sample_rate, mode = 'magnitude')
 
         #frequencies, times, spectrogram2b = signal.spectrogram(samples, sample_rate, mode = 'phase')
 
-        abc = spectrogram2a * (np.exp(1j*spectrogram2b))
+        #abc = spectrogram2a * (np.exp(1j*spectrogram2b))
         #abc = spectrogram2a*spectrogram2b
 
-        print(np.mean(abc - spectrogram2))
+        #print(np.mean(abc - spectrogram2))
 
-        z3 = '/content/drive/My Drive/TCDTIMIT/audio/stft1' + '.wav'
-        z4 = '/content/drive/My Drive/TCDTIMIT/audio/clean1' + '.wav'
+        #z3 = '/content/drive/My Drive/TCDTIMIT/audio/stft1' + '.wav'
+        #z4 = '/content/drive/My Drive/TCDTIMIT/audio/clean1' + '.wav'
 
         #_, output = signal.istft(spectrogram2, sample_rate, nperseg=256,noverlap=192,nfft=256)
-        output = librosa.istft(D)
+        #output = librosa.istft(D)
         #wavfile.write(z3, sample_rate, output)
 
         #wavfile.write(z4, sample_rate, samples)
 
-        librosa.output.write_wav(z3, output, sample_rate)
-        librosa.output.write_wav(z4, samples1, sample_rate1)
+        #librosa.output.write_wav(z3, output, sample_rate)
+        #librosa.output.write_wav(z4, samples1, sample_rate1)
         
 
 
@@ -142,13 +143,13 @@ class BasicDataset(Dataset):
         return { "image" :torch.from_numpy(spectrogram1a), "mask" : torch.from_numpy(spectrogram2a), "fs" : sample_rate, 'a1' : spectrogram1b, 'a2' : spectrogram2b}
 
 
-dataset = BasicDataset('hi', 'hi', 1)
-l = (dataset.__getitem__(4))
-x = l['a2']
+#dataset = BasicDataset('hi', 'hi', 1)
+#l = (dataset.__getitem__(4))
+#x = l['a2']
 #print(x)
 #y = l['mask']
 
-print(x.shape)
+#print(x.shape)
 #print(y.shape)
 
    
