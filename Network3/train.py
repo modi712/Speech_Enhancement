@@ -44,7 +44,7 @@ def train_net(net,
               val_percent=0.1,
               save_cp=True,
               img_scale=0.5):
-    lr = 0.01
+    lr = 0.05
     momentum = 0.70
     weight_decay = 1e-4
     lr_decay = 0.001
@@ -107,7 +107,7 @@ def train_net(net,
                 maskp = true_masks[0,:,0]
                 maskp = maskp.data.numpy()
                 maskp = maskp.reshape(1025,1)
-                print(maskp.shape, 'hello')
+                #print(maskp.shape, 'hello')
 
                 for p in range(l):
                   imgs = image[:,:,p]
@@ -156,6 +156,7 @@ def train_net(net,
 
                 #print(maskp.shape, 'hello from the other side')
                 global_step += 1
+                print(global_step, 'global_step')
                 if global_step % 50 == 0:
                     #x = (masks_pred.cpu().data.numpy())
                     #x = x[0,:,:]
@@ -182,8 +183,8 @@ def train_net(net,
                     print(q)
                     r = np.mean(q)
                     print(r, 'hey r')
-                    print(np.mean(x), 'hey x')
-                    print(np.mean(p), 'hey p')
+                    print(np.mean(np.abs(x)), 'hey x')
+                    print(np.mean(np.abs(p)), 'hey p')
                     y = str(global_step)
                     z = '/content/drive/My Drive/TCDTIMIT/img/apx'+y + '.png'
                     z1 = '/content/drive/My Drive/TCDTIMIT/img/atx'+y + '.png'

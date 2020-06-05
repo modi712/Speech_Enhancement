@@ -108,6 +108,8 @@ class BasicDataset(Dataset):
 
         temp = spectrogram1a
 
+        l = temp.shape[1]
+
         for i in range(1,4):
           y = temp[:,i:]
           yk = np.zeros((1025,i))
@@ -115,8 +117,15 @@ class BasicDataset(Dataset):
 
           spectrogram1a = np.vstack((spectrogram1a,y))
 
+        for i in range(1,4):
+          y = temp[:,:l-i]
+          yk = np.zeros((1025,i))
+          y = np.hstack((yk,y))
 
-        print(spectrogram1a.shape)
+          spectrogram1a = np.vstack((y,spectrogram1a))
+
+
+        #print(spectrogram1a.shape)
         #spectrogram1b = spectrogram1b[:,0:-1]
 
         #frequencies, times, spectrogram1 = signal.stft(samples, sample_rate, nperseg=256,noverlap=192,nfft=256)
@@ -178,8 +187,8 @@ class BasicDataset(Dataset):
         return { "image" :torch.from_numpy(spectrogram1a), "mask" : torch.from_numpy(spectrogram2a), "fs" : sample_rate, 'a1' : spectrogram1b, 'a2' : spectrogram2b}
 
 
-dataset = BasicDataset('hi', 'hi', 1)
-l = (dataset.__getitem__(4))
+#dataset = BasicDataset('hi', 'hi', 1)
+#l = (dataset.__getitem__(4))
 #x = l['a2']
 #print(x)
 #y = l['mask']
