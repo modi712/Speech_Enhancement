@@ -87,6 +87,16 @@ class BasicDataset(Dataset):
 
         samples, sample_rate = librosa.load(img)
         D = librosa.stft(samples)
+        
+        l = D.shape[1]
+
+        k = l%64
+        k = l-k
+
+        D = D[:,0:k]
+
+        print(D.shape)
+
         spectrogram1a = np.abs(D) 
         spectrogram1a = np.square(spectrogram1a)+ 1e-15
         spectrogram1a = np.log(spectrogram1a)
@@ -147,6 +157,13 @@ class BasicDataset(Dataset):
 
         D1 = librosa.stft(samples1)
 
+        l = D1.shape[1]
+
+        k = l%64
+        k = l-k
+
+        D1 = D1[:,0:k]
+
         
         
         spectrogram2a = np.abs(D1) 
@@ -171,7 +188,7 @@ class BasicDataset(Dataset):
         #z4 = '/content/drive/My Drive/TCDTIMIT/audio/clean1' + '.wav'
 
         #_, output = signal.istft(spectrogram2, sample_rate, nperseg=256,noverlap=192,nfft=256)
-        #output = librosa.istft(D)
+        #output = librosa.istft(D1)
         #wavfile.write(z3, sample_rate, output)
 
         #wavfile.write(z4, sample_rate, samples)

@@ -44,7 +44,7 @@ def train_net(net,
               val_percent=0.1,
               save_cp=True,
               img_scale=0.5):
-    lr = 0.05
+    lr = 0.001
     momentum = 0.70
     weight_decay = 1e-4
     lr_decay = 0.001
@@ -74,7 +74,8 @@ def train_net(net,
 
     # optimizer = optim.RMSprop(net.parameters(), lr=lr, weight_decay=weight_decay,momentum=momentum)
     # optimizer = optim.Adam(net.parameters(), lr=lr, weight_decay=weight_decay)
-    optimizer = optim.Adagrad(net.parameters(), lr=lr, weight_decay=weight_decay,lr_decay = lr_decay)
+    #optimizer = optim.Adagrad(net.parameters(), lr=lr, weight_decay=weight_decay,lr_decay = lr_decay)
+    optimizer = optim.SGD(net.parameters(), lr = lr, momentum=momentum,  weight_decay = weight_decay, nesterov=False)
     if 1 > 2:
         criterion = nn.CrossEntropyLoss()
     else:
@@ -104,14 +105,26 @@ def train_net(net,
                 l = imgs.shape[2]
                 #print(l, 'hi')
 
-                maskp = true_masks[0,:,0]
+                maskp = true_masks[0,:,0:64]
                 maskp = maskp.data.numpy()
-                maskp = maskp.reshape(1025,1)
+                maskp = maskp.reshape(1025,64)
                 #print(maskp.shape, 'hello')
+                
+                for p in range(0, l//64):
 
-                for p in range(l):
-                  imgs = image[:,:,p]
-                  true_masks = trma[:,:,p]
+                  m = 64*p
+
+
+                  imgs = image[:,:,m]
+                  true_masks = trma[:,:,m]
+
+                  for k in range(m+1, m+64):
+                    imgs = np.vstack((imgs,image[:,:,k]))
+                    true_masks = np.vstack((true_masks,trma[:,:,k]))
+                    #print(imgs.shape)
+                  
+                  imgs = torch.from_numpy(imgs)
+                  true_masks = torch.from_numpy(true_masks)
 
                   #print(imgs.shape)
                   #print(true_masks.shape)
@@ -126,11 +139,17 @@ def train_net(net,
                   true_masks = true_masks.to(device=device, dtype=mask_type)
 
                   masks_pred = net(imgs)
+                  if p == 0:
+                    x = masks_pred.cpu().data.numpy()
+                    x = np.transpose(x)
+                    maskp = x
                   if p > 0:
                     x = masks_pred.cpu().data.numpy()
-                    x = x[0,:]
-                    x = x.reshape(1025,1)
+                    x = x[:,:]
+                    #print(x.shape, 'x')
+                    x = np.transpose(x)
                     maskp = np.concatenate((maskp, x),axis = 1)
+                    #print(maskp.shape, 'mask')
                   
                   
 
@@ -156,8 +175,9 @@ def train_net(net,
 
                 #print(maskp.shape, 'hello from the other side')
                 global_step += 1
+                
                 print(global_step, 'global_step')
-                if global_step % 50 == 0:
+                if global_step % 3000 == 0:
                     #x = (masks_pred.cpu().data.numpy())
                     #x = x[0,:,:]
                     #x = x[0,:,:]
@@ -191,8 +211,8 @@ def train_net(net,
                     z2 = '/content/drive/My Drive/TCDTIMIT/audio/apwavx'+y + '.wav'
                     z3 = '/content/drive/My Drive/TCDTIMIT/audio/atwavx'+y + '.wav'
                     #print(z)
-                    #cv2.imwrite(z, x*255)
-                    #cv2.imwrite(z1, p*255)
+                    cv2.imwrite(z, x*255)
+                    cv2.imwrite(z1, p*255)
 
                     #output = stft.ispectrogram(x)
                     #wav.write(z2, fs, output)
