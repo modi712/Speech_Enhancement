@@ -21,12 +21,13 @@ dir_mask = 'data/masks/'
 dir_checkpoint = 'checkpoints/'
 
 import cv2
-
+import librosa
+from pesq import pesq 
 
 def train_net(net,
               device,
               epochs=20,
-              batch_size=16,
+              batch_size=1,
               lr=0.1,
               val_percent=0.1,
               save_cp=True,
@@ -79,39 +80,77 @@ def train_net(net,
         with tqdm(total=n_train, desc=f'Epoch {epoch + 1}/{epochs}', unit='img') as pbar:
             for batch in train_loader:
                 imgs = batch['image']
+                fs = batch['fs']
+                a2 = batch['a2']
+                a1 = batch['a1']
                 print(batch_temp)
-                batch_temp = batch_temp+1;
+                batch_temp = batch_temp+1
                 true_masks = batch['mask']
-                assert imgs.shape[1] == net.n_channels, \
-                    f'Network has been defined with {net.n_channels} input channels, ' \
-                    f'but loaded images have {imgs.shape[1]} channels. Please check that ' \
-                    'the images are loaded correctly.'
+                #assert imgs.shape[1] == net.n_channels, \
+                #    f'Network has been defined with {net.n_channels} input channels, ' \
+                #    f'but loaded images have {imgs.shape[1]} channels. Please check that ' \
+                #    'the images are loaded correctly.'
 
                 imgs = imgs.to(device=device, dtype=torch.float32)
                 mask_type = torch.float32 if net.n_classes == 1 else torch.long
                 true_masks = true_masks.to(device=device, dtype=mask_type)
 
                 masks_pred = net(imgs)
-                if global_step % (1000) == 0:
-                  x = (masks_pred.cpu().data.numpy())
-                  x = x[0,:,:]
-                  x = x[0,:,:]
-                  x = (x > 0.5).astype(float)
+                global_step += 1
+                print(global_step, 'global_step')
+                if global_step % 100 == 0:
+                    #x = (masks_pred.cpu().data.numpy())
+                    #x = x[0,:,:]
+                    #x = x[0,:,:]
+                    #x = (x > 0.5).astype(float)
                    
-                  p = (true_masks.cpu().data.numpy())
-                  #print(p.shape)
-                  p = p[0,:,:]
-                  #print(p.shape)
-                  p = p[0,:,:]
-                  p = (p > 0.5).astype(float)
-                  #print(p)
-                  #print(p.shape)
-                  y = str(global_step)
-                  z = '/content/drive/My Drive/TCDTIMIT/img/ap'+y + '.png'
-                  z1 = '/content/drive/My Drive/TCDTIMIT/img/at'+y + '.png'
-                  #print(z)
-                  cv2.imwrite(z, x*255)
-                  cv2.imwrite(z1, p*255)
+                    p = (true_masks.cpu().data.numpy())
+                    a2 = (a2.cpu().data.numpy())
+                    a1 = (a1.cpu().data.numpy())
+                    #print(p.shape, 'h1')
+                    p = p[0,0,:,:]
+                    a2 = a2[0,:,:]
+                    a1 = a1[0,:,:]
+                    #print(p.shape, 'h2')
+                    #p = p[0,:,:]
+                    #p = (p > 0.5).astype(float)
+                    #print(p)
+                    #print(p.shape)
+                    x = masks_pred
+                    x = x[0,0,:,:]
+                    x = (x.cpu().data.numpy())
+                    #print(x, 'phappy')
+                    #print(p, 'thappy')
+                    q = x-p
+                    q = np.abs(q)
+                    print(q)
+                    r = np.mean(q)
+                    print(r, 'hey r')
+                    print(np.mean(np.abs(x)), 'hey x')
+                    print(np.mean(np.abs(p)), 'hey p')
+                    y = str(global_step)
+                    z = '/content/drive/My Drive/TCDTIMIT/img/apx'+y + '.png'
+                    z1 = '/content/drive/My Drive/TCDTIMIT/img/atx'+y + '.png'
+                    z2 = '/content/drive/My Drive/TCDTIMIT/audio/apwavx'+y + '.wav'
+                    z3 = '/content/drive/My Drive/TCDTIMIT/audio/atwavx'+y + '.wav'
+                    #print(z)
+                    cv2.imwrite(z, x*255)
+                    cv2.imwrite(z1, p*255)
+
+                    #output = stft.ispectrogram(x)
+                    #wav.write(z2, fs, output)
+
+                    output = librosa.istft((np.sqrt(np.exp(p))) * (np.exp(1j*a2)))
+                    librosa.output.write_wav(z3, output, fs)
+
+                    output = librosa.istft(np.sqrt((np.exp(x))) * (np.exp(1j*a1)))
+                    librosa.output.write_wav(z2, output, fs)
+
+                    ref, rate = librosa.load(z3, sr=16000)
+                    deg, rate = librosa.load(z2, sr=16000)
+
+                    print('PESQ')
+                    print(pesq(rate, ref, deg, 'wb'))
 
                 #print(np.mean(masks_pred.cpu().data.numpy()))
                 #pred = (masks_pred > 0.5).float()
@@ -132,7 +171,7 @@ def train_net(net,
                 optimizer.step()
 
                 pbar.update(imgs.shape[0])
-                global_step += 1
+                #global_step += 1
                 if global_step % (100000) == 0:
                     val_score = 0
                     for batch in val_loader:

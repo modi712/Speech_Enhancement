@@ -22,7 +22,7 @@ class UNet(nn.Module):
         self.up3 = Up(256, 64, bilinear)
         self.up4 = Up(128, 64, bilinear)
         self.outc = OutConv(64, n_classes)
-        self.sigm = Sigmoid1()
+        #self.sigm = Sigmoid1()
 
     def forward(self, x):
         x1 = self.inc(x)
@@ -35,7 +35,7 @@ class UNet(nn.Module):
         x = self.up3(x, x2)
         x = self.up4(x, x1)
         logits = self.outc(x)
-        logits = self.sigm(logits)
+        #logits = self.sigm(logits)
         # logits = F.sigmoid(logits)
         # logits = logits.long()
         return logits
