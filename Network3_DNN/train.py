@@ -9,13 +9,13 @@ import torch.nn as nn
 from torch import optim
 from tqdm import tqdm
 
-from eval import eval_net
-from unet import UNet
+#from eval import eval_net
+from DNN import DNN
 
 from torch.utils.tensorboard import SummaryWriter
 from dataset1 import BasicDataset
 from torch.utils.data import DataLoader, random_split
-from dice_loss import dice_coeff
+
 dir_img = '/content/drive/My Drive/ML /Training/Damaged'
 dir_mask = 'data/masks/'
 dir_checkpoint = 'checkpoints/'
@@ -305,7 +305,7 @@ if __name__ == '__main__':
     #   - For 2 classes, use n_classes=1
     #   - For N > 2 classes, use n_classes=N
     #net = UNet(n_channels=1, n_classes=1)
-    net = UNet()
+    net = DNN()
     #logging.info(f'Network:\n'
     #             f'\t{net.n_channels} input channels\n'
     #             f'\t{net.n_classes} output channels (classes)\n'
